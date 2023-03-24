@@ -1,6 +1,7 @@
 import warnings
 warnings.filterwarnings("ignore", message=".*iteritems is deprecated.*")
 
+import os
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -9,6 +10,9 @@ import xgboost as xgb
 import shap
 import matplotlib
 import matplotlib.pyplot as plt
+
+path_to_fig = 'figures'
+ROOT_PATH = '.'
 
 datasets = ["chapuy_example.csv"]
 outcomes = ['OS', 'PFS']
@@ -32,7 +36,7 @@ features_list = list(df['NAME'][0:6])
 #transpose dataframe and convert to matrix dropping outcomes NAs
 matrix = df.to_numpy()
 transpose = matrix.T
-dft = pd.DataFrame(transpose[1:N], columns=features_list[0:num_features+len(outcomes)])
+dft = pd.DataFrame(transpose[1:N], columns=df['NAME'])
 dft = dft.dropna(subset=outcome)
 N = dft.shape[1]
 transpose = dft.to_numpy()
@@ -72,16 +76,28 @@ print(f"Accuracy / test set: {accuracy}")
 #Explain feature importance using SHAP values
 shap_values = shap.TreeExplainer(model).shap_values(X_train)
 
+#Save SHAP summary plot figure
+plt.figure()
 shap.summary_plot(shap_values, X_train, feature_names=features_list)
+path_to_shap_fig = os.path.join(path_to_fig, "SHAP_summary_plot_{}_{}.png".format(outcome, dataset))
+plt.tight_layout()
+plt.savefig(path_to_shap_fig)
+plt.close()
 
 #Select top features based on SHAP values
-# shap_df = pd.DataFrame(shap_values.values, columns=features_list)
-# shap_df_abs = shap_df.abs()
-# feature_importance = shap_df_abs.mean().sort_values(ascending=False)
-# top_features = feature_importance[:5].index.tolist()
-#
-# #Select only top features
-# X_top = X[top_features]
+shap_df = pd.DataFrame(shap_values, columns=features_list)
+shap_df_abs = shap_df.abs()
+feature_importance_shap = shap_df_abs.mean().sort_values(ascending=False)
+
+#evaluating features selection techniques increasing the number of features to consider
+num_features_to_consider = [1, 2, 3, 4]
+
+for n in num_features_to_consider:
+    top_features_shap = feature_importance_shap[0:n].index.tolist()
+    df_top = dft[top_features_shap]
+
+#Select only top features
+# df_top = df[top_features]
 
 
 

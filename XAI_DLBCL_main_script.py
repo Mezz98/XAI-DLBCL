@@ -75,13 +75,13 @@ shap_values = shap.TreeExplainer(model).shap_values(X_train)
 shap.summary_plot(shap_values, X_train, feature_names=features_list)
 
 #Select top features based on SHAP values
-shap_df = pd.DataFrame(shap_values.values, columns=features_list)
-shap_df_abs = shap_df.abs()
-feature_importance = shap_df_abs.mean().sort_values(ascending=False)
-top_features = feature_importance[:5].index.tolist()
-
-#Select only top features
-X_top = X[top_features]
+# shap_df = pd.DataFrame(shap_values.values, columns=features_list)
+# shap_df_abs = shap_df.abs()
+# feature_importance = shap_df_abs.mean().sort_values(ascending=False)
+# top_features = feature_importance[:5].index.tolist()
+#
+# #Select only top features
+# X_top = X[top_features]
 
 
 

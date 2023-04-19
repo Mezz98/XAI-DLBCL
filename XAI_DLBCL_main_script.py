@@ -18,8 +18,8 @@ from sklearn.metrics import RocCurveDisplay
 path_to_fig = 'figures'
 ROOT_PATH = '.'
 
-datasets = ["chapuy_example.csv"]
-outcomes = ['OS', 'PFS']
+datasets = ["Sha_CBSx_CD3.csv", "Sha_CBSx_CD3_Medulla.csv", "Sha_CBSx_CD11.csv", "Sha_CBSx_CD20.csv", "Sha_CBSx_Stroma.csv"]
+outcomes = ['OS', 'PFS', 'POD12', 'POD24', 'RESP_ASSESS']
 
 for dataset in datasets:
     for outcome in outcomes:
@@ -35,7 +35,7 @@ for dataset in datasets:
         #signing util numbers
         N = df.shape[1]
         num_features = df.shape[0] - len(outcomes)
-        features_list = list(df['NAME'][0:6])
+        features_list = list(df['NAME'][0:num_features])
 
         #transpose dataframe and convert to matrix dropping outcomes NAs
         matrix = df.to_numpy()

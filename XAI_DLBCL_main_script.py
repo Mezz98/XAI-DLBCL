@@ -8,6 +8,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.impute import KNNImputer
 import xgboost as xgb
 import shap
+from lime import lime_tabular
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.use('agg')
@@ -20,11 +21,11 @@ ROOT_PATH = '.'
 
 seed = 42
 
-datasets = ["Sha_CBSx_CD3.csv", "Sha_CBSx_CD3_Medulla.csv", "Sha_CBSx_CD11.csv", "Sha_CBSx_CD20.csv", "Sha_CBSx_Stroma.csv"]
+datasets = ["Sha_CBSx_CD3.csv"]#, "Sha_CBSx_CD3_Medulla.csv", "Sha_CBSx_CD11.csv", "Sha_CBSx_CD20.csv", "Sha_CBSx_Stroma.csv"]
 outcomes = ['OS', 'PFS', 'POD12', 'POD24', 'RESP_ASSESS']
 
 for dataset in datasets:
-    for outcome in outcomes:
+    for outcome in ['OS']:
         df = pd.read_csv(os.path.join('datasets', dataset))
 
         #NA management
@@ -57,19 +58,22 @@ for dataset in datasets:
         X_test = imputer.transform(X_test)
 
         #create Dmatrix
-        dtrain = xgb.DMatrix(X_train, label=y_train, enable_categorical=True, feature_names=features_list)
-        dtest = xgb.DMatrix(X_test, label=y_test, enable_categorical=True, feature_names=features_list)
+        dtrain = xgb.DMatrix(X_train, feature_names=features_list)
+        dtest = xgb.DMatrix(X_test, feature_names=features_list)
 
         #setting XGBoost parameters
-        param = {'max_depth': 2, 'eta': 0.03, 'objective': 'binary:logistic', 'eval_metric': 'auc'}
+        param = {'max_depth': 5, 'eta': 0.001, 'objective': 'binary:logistic', 'eval_metric': 'auc'}
 
         #training model
-        num_round = 100
-        model = xgb.train(param, dtrain, num_round)
+        num_round = 500
+        model = xgb.XGBClassifier(**param, n_estimators=num_round)
+        model.fit(X_train, y_train)
+
+        #model = xgb.train(param, dtrain, num_round)
 
         #make predictions
-        y_pred_train = model.predict(dtrain)
-        y_pred_test = model.predict(dtest)
+        y_pred_train = model.predict(X_train)
+        y_pred_test = model.predict(X_test)
         auc_train = roc_auc_score(y_train, y_pred_train)
         auc_test = roc_auc_score(y_test, y_pred_test)
         accuracy_train = accuracy_score(y_train, y_pred_train.round())
@@ -97,6 +101,15 @@ for dataset in datasets:
         shap_df = pd.DataFrame(shap_values, columns=features_list)
         shap_df_abs = shap_df.abs()
         feature_importance_shap = shap_df_abs.mean().sort_values(ascending=False).index.tolist()
+
+
+        # #Explain features importance using LIME weights (TOO SLOW!)
+        # from lime_module import limeExplainer
+        #
+        # LE = limeExplainer(X_train, features_list, model)
+        #
+        # feature_importance_lime = LE.get_features_sorted()
+
 
         #features selection using p-value
         dfp = pd.DataFrame(X_train, columns=features_list)

@@ -21,11 +21,11 @@ ROOT_PATH = '.'
 
 seed = 42
 
-datasets = ["Sha_CBSx_CD3.csv"]#, "Sha_CBSx_CD3_Medulla.csv", "Sha_CBSx_CD11.csv", "Sha_CBSx_CD20.csv", "Sha_CBSx_Stroma.csv"]
+datasets = ["Sha_CBSx_CD3.csv", "Sha_CBSx_CD3_Medulla.csv", "Sha_CBSx_CD11.csv", "Sha_CBSx_CD20.csv", "Sha_CBSx_Stroma.csv"]
 outcomes = ['OS', 'PFS', 'POD12', 'POD24', 'RESP_ASSESS']
 
 for dataset in datasets:
-    for outcome in ['OS']:
+    for outcome in outcomes:
         df = pd.read_csv(os.path.join('datasets', dataset))
 
         #NA management
